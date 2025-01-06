@@ -1,11 +1,47 @@
+function createLabel(text, rename=false) {
+    let wrapper = document.createElement("div");
+    wrapper.classList.add("label-wrapper");
+
+    let label = document.createElement("div");
+    label.classList.add("label-text");
+    label.innerText = text;
+    wrapper.appendChild(label);
+
+    let renamer = document.createElement("input");
+    renamer.classList.add("label-rename-input");
+    renamer.style.display = "none";
+    wrapper.appendChild(renamer);
+
+    wrapper.addEventListener("dblclick", () => beginRename(label, renamer));
+
+    renamer.addEventListener("blur", () => endRename(label, renamer));
+
+    renamer.addEventListener("keydown", (e) => {
+        switch(e.code) {
+            // submit rename on Enter key press
+            case "Enter":
+                submitRename(label, renamer);
+                break;
+            // blur if esc is pressed
+            case "Escape":
+                renamer.blur();
+                break;
+        }
+    })
+
+    // TODO: this doesn't focus
+    if (rename) beginRename(label, renamer);
+
+    return wrapper;
+}
+
 function addGroup(groupName) {
     let board = document.getElementById("board");
 
     let group = document.createElement("div");
     group.classList.add("group");
 
-    let groupLabel = document.createElement("div");
-    groupLabel.innerText = groupName;
+    let groupLabel = createLabel(groupName);
     group.appendChild(groupLabel);
 
     let addCardButton = document.createElement("button");
@@ -22,49 +58,8 @@ function addCard(group) {
     let card = document.createElement("div");
     card.classList.add("card");
 
-    // card label
-    let label = document.createElement("div");
-    label.classList.add("label");
-    label.innerText = "card";
-
+    let label = createLabel("card", true);
     card.appendChild(label);
-
-    // card label input
-    let renameInput = document.createElement("input");
-    renameInput.classList.add("label-input");
-    renameInput.style.display = "none";
-    card.appendChild(renameInput);
-
-    // initiate renaming via double click
-    label.addEventListener("dblclick", () => beginRename(label, renameInput));
-
-    // cancel rename if input is blurred
-    renameInput.addEventListener("blur", () => endRename(label, renameInput));
-
-    // rename hotkeys
-    renameInput.addEventListener("keydown", (e) => {
-        switch(e.code) {
-            // submit rename on Enter key press
-            case "Enter":
-                submitRename(label, renameInput);
-                break;
-            // blur if esc is pressed
-            case "Escape":
-                renameInput.blur();
-                break;
-        }
-    })
-
-    // delete button
-    let deleteButton = document.createElement("button");
-    deleteButton.classList.add("delete-card");
-    deleteButton.innerText = "X";
-    deleteButton.addEventListener("click", () => card.remove());
-    card.appendChild(deleteButton);
-
-    // events for button hover visuals
-    card.addEventListener("mouseover", () => show(deleteButton));
-    card.addEventListener("mouseleave", () => hide(deleteButton));
 
     group.insertBefore(card, group.lastElementChild);
 }
@@ -76,7 +71,9 @@ function beginRename(label, input) {
     input.focus();
 }
 
+// TODO: this fires twice on submit
 function endRename(label, input) {
+    console.log("Ending");
     input.style.display = "none";
     label.style.display = "block";
 }
