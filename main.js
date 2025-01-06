@@ -44,15 +44,25 @@ function addGroup(groupName) {
     let group = document.createElement("div");
     group.classList.add("group");
 
-    let groupLabel = createLabel(groupName);
-    group.appendChild(groupLabel);
+    let header = document.createElement("div");
+    header.classList.add("group-header");
+    group.appendChild(header);
 
+    let groupLabel = createLabel(groupName);
+    header.appendChild(groupLabel);
+
+    // add card button
     let addCardButton = document.createElement("button");
+    addCardButton.classList.add("add-button", "add-card-button");
     addCardButton.innerText = "+";
     addCardButton.addEventListener("click", () => addCard(group));
     group.appendChild(addCardButton);
 
+    // insert before add group button
     board.insertBefore(group, board.lastElementChild);
+
+    // name group
+    beginLabelRename(groupLabel);
 }
 
 // creates a new card within the specified group
@@ -101,5 +111,5 @@ function submitLabelRename(label) {
     text.innerText = renamer.value;
 }
 
-document.getElementById("add-group").addEventListener("click", () => addGroup("group"));
-addGroup("group");
+document.getElementById("add-group-button").addEventListener("click", () => addGroup("group"));
+addGroup("New Group");
