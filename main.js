@@ -43,6 +43,7 @@ function addGroup(groupName) {
 
     let group = document.createElement("div");
     group.classList.add("group");
+    group.draggable = true;
 
     let header = document.createElement("div");
     header.classList.add("group-header");
@@ -58,6 +59,10 @@ function addGroup(groupName) {
     addCardButton.addEventListener("click", () => addCard(group));
     group.appendChild(addCardButton);
 
+    // drag & drop handlers
+    group.addEventListener("dragover", dragoverHandler);
+    group.addEventListener("drop", dropHandler);
+
     // insert before add group button
     board.insertBefore(group, board.lastElementChild);
 
@@ -70,9 +75,12 @@ function addCard(group) {
     // card container
     let card = document.createElement("div");
     card.classList.add("card");
+    card.draggable = true;
 
     let label = createLabel("card", true);
     card.appendChild(label);
+
+    card.addEventListener("dragstart", dragstartHandler);
 
     // insert before add new button
     group.insertBefore(card, group.lastElementChild);
@@ -110,6 +118,41 @@ function submitLabelRename(label) {
     endLabelRename(text, renamer);
     text.innerText = renamer.value;
 }
+
+function dragstartHandler(e) {
+    draggedCard = e.target;
+}
+
+function dragoverHandler(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+}
+
+function dropHandler(e) {
+    let group = e.target.closest(".group");
+
+    // remove card from current position
+    draggedCard.parentNode.removeChild(draggedCard);
+    
+    cardsOfTargetGroup = group.querySelectorAll(".card");
+
+    for (const card of cardsOfTargetGroup) {
+        let rect = card.getBoundingClientRect();
+        let y = rect.top;
+        let height = rect.height;
+        
+        // place dragged card above current one if mouse is above middle point
+        if (e.clientY < y + height / 2) {
+            group.insertBefore(draggedCard, card);
+            return;
+        }
+    }
+
+    // insert dragged card as last if group is empty or card was placed lower than the others
+    group.insertBefore(draggedCard, group.lastElementChild);
+}
+
+let draggedCard;
 
 document.getElementById("add-group-button").addEventListener("click", () => addGroup("group"));
 addGroup("New Group");
