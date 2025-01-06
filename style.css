@@ -1,0 +1,94 @@
+@font-face {
+    font-family: Gantari;
+    src: url(gantari.ttf);
+}
+
+:root {
+    --border-color: #b8b8b8;
+    --hover-color: #dedede;
+    --accent-color: #808080;
+    --label-min-height: 24px;
+    --add-button-size: 24px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0px;
+    padding: 16px;
+}
+
+body, button, input {
+    font-family: Gantari;
+    font-size: 16px;
+}
+
+#board {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.add-button {
+    cursor: pointer;
+    font-size: 24px;
+    border: 1px solid white;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.add-button:hover {
+    border: 1px solid var(--border-color);
+    transition: all .25s;
+}
+
+#add-group-button {
+    align-self: stretch;
+    width: var(--add-button-size);
+}
+
+.label-wrapper {
+    /* flex here is used to stretch inputs correctly */
+    display: flex;
+    flex-direction: row;
+}
+
+.label-text {
+    line-height: var(--label-min-height); /* to center vertically */
+}
+
+.label-renamer {
+    height: var(--label-min-height);
+}
+
+.label-text, .label-renamer {
+    flex-grow: 1;
+}
+
+.group {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 4px;
+    width: 280px;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.card {
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.card:hover {
+    border-color: var(--accent-color);
+    transition: border-color .25s;
+}
+
+.add-card-button {
+    height: var(--add-button-size);
+}
