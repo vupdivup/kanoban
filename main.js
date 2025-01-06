@@ -24,7 +24,7 @@ function addCard(group) {
 
     // card label
     let cardLabel = document.createElement("div");
-    cardLabel.classList.add("card-label");
+    cardLabel.classList.add("label");
     cardLabel.innerText = "card";
     card.appendChild(cardLabel);
 

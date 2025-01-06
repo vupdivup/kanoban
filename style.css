@@ -1,0 +1,23 @@
+#board {
+    display: flex;
+    gap: 16px;
+}
+
+.group {
+    display: flex;
+    flex-direction: column;
+    height: 128px;
+    width: 128px;
+    border: 1px solid black; 
+}
+
+.card {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+}
+
+.label {
+    min-width: 0;
+    overflow-wrap: break-word;
+}
