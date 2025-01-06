@@ -16,10 +16,38 @@ function addGroup(groupName) {
     board.insertBefore(group, board.lastElementChild);
 }
 
+// creates a new card within the specified group
 function addCard(group) {
+    // card container
     let card = document.createElement("div");
-    card.innerText = "card";
+    card.classList.add("card");
+
+    // card label
+    let cardLabel = document.createElement("div");
+    cardLabel.classList.add("card-label");
+    cardLabel.innerText = "card";
+    card.appendChild(cardLabel);
+
+    // delete button
+    let deleteCardButton = document.createElement("button");
+    deleteCardButton.classList.add("delete-card");
+    deleteCardButton.innerText = "X";
+    deleteCardButton.addEventListener("click", () => card.remove());
+    card.appendChild(deleteCardButton);
+
+    // events for button hover visuals
+    card.addEventListener("mouseover", () => show(deleteCardButton));
+    card.addEventListener("mouseleave", () => hide(deleteCardButton));
+
     group.insertBefore(card, group.lastElementChild);
+}
+
+function show(element) {
+    element.style.visibility = "visible"; 
+}
+
+function hide(element) {
+    element.style.visibility = "hidden";
 }
 
 document.getElementById("add-group").addEventListener("click", () => addGroup("group"));
