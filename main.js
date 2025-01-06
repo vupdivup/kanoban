@@ -45,6 +45,9 @@ function addGroup(groupName) {
     group.classList.add("group");
     group.draggable = true;
 
+    group.addEventListener("dragstart", groupDragstartHandler);
+
+    // header section
     let header = document.createElement("div");
     header.classList.add("group-header");
     group.appendChild(header);
@@ -58,10 +61,6 @@ function addGroup(groupName) {
     addCardButton.innerText = "+";
     addCardButton.addEventListener("click", () => addCard(group));
     group.appendChild(addCardButton);
-
-    // drag & drop handlers
-    group.addEventListener("dragover", dragoverHandler);
-    group.addEventListener("drop", dropHandler);
 
     // insert before add group button
     board.insertBefore(group, board.lastElementChild);
@@ -80,7 +79,7 @@ function addCard(group) {
     let label = createLabel("card", true);
     card.appendChild(label);
 
-    card.addEventListener("dragstart", dragstartHandler);
+    card.addEventListener("dragstart", cardDragstartHandler);
 
     // insert before add new button
     group.insertBefore(card, group.lastElementChild);
@@ -98,6 +97,7 @@ function beginLabelRename(label) {
     renamer.style.display = "block";
     renamer.value = text.innerText;
     renamer.focus();
+    renamer.select();
 }
 
 // hide rename input of label
@@ -119,40 +119,92 @@ function submitLabelRename(label) {
     text.innerText = renamer.value;
 }
 
-function dragstartHandler(e) {
-    draggedCard = e.target;
+// handle dragstart event of card elements
+function cardDragstartHandler(e) {    
+    // prevent parent group from firing the dragover event twice
+    e.stopPropagation();
+
+    draggedElement = e.target;
+    e.dataTransfer.setData("text/plain", "card");
 }
 
+// handle dragstart event of group elements
+function groupDragstartHandler(e) {
+    draggedElement = e.target;
+    e.dataTransfer.setData("text/plain", "group");
+}
+
+// set drop effect
 function dragoverHandler(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
 }
 
-function dropHandler(e) {
-    let group = e.target.closest(".group");
+// handle drop based on whether a card or a group is being moved
+function dropHandler(e) {    
+    switch(e.dataTransfer.getData("text/plain")) {
+        case "card":
+            dropCard(e.target, e.clientY);
+            break;
+        case "group":
+            dropGroup(e.clientX);
+            break;
+    }
+}
 
-    // remove card from current position
-    draggedCard.parentNode.removeChild(draggedCard);
-    
+// drop card based on its position and target group
+function dropCard(target, mouseY) {
+    // get parent group of drop target
+    let group = target.closest(".group");
+
+    // reset if card was dragged to board
+    if (!group) return;
+
     cardsOfTargetGroup = group.querySelectorAll(".card");
 
+    // iterate over cards of target group
     for (const card of cardsOfTargetGroup) {
         let rect = card.getBoundingClientRect();
         let y = rect.top;
         let height = rect.height;
         
-        // place dragged card above current one if mouse is above middle point
-        if (e.clientY < y + height / 2) {
-            group.insertBefore(draggedCard, card);
+        // place dragged card before this one if mouse is above middle point
+        if (mouseY < y + height / 2) {
+            group.insertBefore(draggedElement, card);
             return;
         }
     }
 
-    // insert dragged card as last if group is empty or card was placed lower than the others
-    group.insertBefore(draggedCard, group.lastElementChild);
+    // insert dragged card as last if card was placed lower than all the others
+    group.insertBefore(draggedElement, group.lastElementChild);
 }
 
-let draggedCard;
+// drop group based on its X position
+function dropGroup(mouseX) {
+    let board = document.getElementById("board");
+    let groups = board.querySelectorAll(".group");
+
+    // iterate over groups
+    for (const group of groups) {
+        let rect = group.getBoundingClientRect();
+        let x = rect.x;
+        let width = rect.width;
+
+        if (mouseX < x + width / 2) {
+            board.insertBefore(draggedElement, group);
+            return;
+        }
+    }
+
+    // insert as last if group was dragged way to the right
+    board.insertBefore(draggedElement, board.lastElementChild);
+}
+
+let draggedElement;
 
 document.getElementById("add-group-button").addEventListener("click", () => addGroup("group"));
 addGroup("New Group");
+
+let board = document.getElementById("board");
+board.addEventListener("dragover", dragoverHandler);
+board.addEventListener("drop", dropHandler);
