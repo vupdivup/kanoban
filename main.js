@@ -1,38 +1,41 @@
-function createLabel(text, rename=false) {
-    let wrapper = document.createElement("div");
-    wrapper.classList.add("label-wrapper");
-
+// create an editable text label for cards and group names
+function createLabel(initialText="") {
     let label = document.createElement("div");
-    label.classList.add("label-text");
-    label.innerText = text;
-    wrapper.appendChild(label);
+    label.classList.add("label-wrapper");
 
+    // inner text element
+    let text = document.createElement("div");
+    text.classList.add("label-text");
+    text.innerText = initialText;
+    label.appendChild(text);
+
+    // hidden rename input
     let renamer = document.createElement("input");
-    renamer.classList.add("label-rename-input");
+    renamer.classList.add("label-renamer");
     renamer.style.display = "none";
-    wrapper.appendChild(renamer);
+    label.appendChild(renamer);
 
-    wrapper.addEventListener("dblclick", () => beginRename(label, renamer));
+    // show rename input on double click
+    label.addEventListener("dblclick", () => beginLabelRename(label));
 
-    renamer.addEventListener("blur", () => endRename(label, renamer));
+    // cancel rename on blur
+    renamer.addEventListener("blur", () => endLabelRename(text, renamer));
 
+    // keydown handling
     renamer.addEventListener("keydown", (e) => {
         switch(e.code) {
             // submit rename on Enter key press
             case "Enter":
-                submitRename(label, renamer);
+                submitLabelRename(label);
                 break;
-            // blur if esc is pressed
+            // blur if Esc is pressed
             case "Escape":
                 renamer.blur();
                 break;
         }
     })
 
-    // TODO: this doesn't focus
-    if (rename) beginRename(label, renamer);
-
-    return wrapper;
+    return label;
 }
 
 function addGroup(groupName) {
@@ -61,34 +64,41 @@ function addCard(group) {
     let label = createLabel("card", true);
     card.appendChild(label);
 
+    // insert before add new button
     group.insertBefore(card, group.lastElementChild);
+
+    // text input for initial naming
+    beginLabelRename(label);
 }
 
-function beginRename(label, input) {
-    label.style.display = "none";
-    input.style.display = "block";
-    input.value = label.innerText;
-    input.focus();
+// show rename input instead of text on label
+function beginLabelRename(label) {
+    let text = label.querySelector(".label-text");
+    let renamer = label.querySelector(".label-renamer");
+
+    text.style.display = "none";
+    renamer.style.display = "block";
+    renamer.value = text.innerText;
+    renamer.focus();
 }
 
-// TODO: this fires twice on submit
-function endRename(label, input) {
-    console.log("Ending");
-    input.style.display = "none";
-    label.style.display = "block";
+// hide rename input of label
+function endLabelRename(text, renamer) {
+    // submitting rename fires blur event of input
+    // this is to prevent the function from running twice due to blur handling
+    if (renamer.style.display === "none") return;
+
+    renamer.style.display = "none";
+    text.style.display = "block";
 }
 
-function submitRename(label, input) {
-    endRename(label, input);
-    label.innerText = input.value;
-}
+// apply new name to label
+function submitLabelRename(label) {
+    let text = label.querySelector(".label-text");
+    let renamer = label.querySelector(".label-renamer");
 
-function show(element) {
-    element.style.visibility = "visible"; 
-}
-
-function hide(element) {
-    element.style.visibility = "hidden";
+    endLabelRename(text, renamer);
+    text.innerText = renamer.value;
 }
 
 document.getElementById("add-group").addEventListener("click", () => addGroup("group"));
