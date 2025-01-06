@@ -200,6 +200,35 @@ function dropGroup(mouseX) {
     board.insertBefore(draggedElement, board.lastElementChild);
 }
 
+// parse board status as JSON and save to local storage
+function save() {
+    let boardSave = {}
+    boardSave.groups = new Array();
+
+    let groups = document.querySelectorAll(".group");
+
+    // iterate over groups
+    for (const group of groups) {
+        let groupSave = {};
+
+        groupSave.label = group.querySelector(".group-header .label-text").innerText;
+        groupSave.cards = new Array();
+
+        let cards = group.querySelectorAll(".card");
+        
+        // cards within group
+        for (const card of cards) {
+            let cardLabel = card.querySelector(".label-text").innerText;
+            groupSave.cards.push(cardLabel);
+        }
+
+        boardSave.groups.push(groupSave);
+    }
+
+    // save to local storage
+    localStorage.setItem("board", JSON.stringify(boardSave));
+}
+
 let draggedElement;
 
 document.getElementById("add-group-button").addEventListener("click", () => addGroup("group"));
