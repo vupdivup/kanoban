@@ -10,6 +10,10 @@ function createLabel(initialText="") {
     // quit editing on blur
     label.addEventListener("blur", () => {
         label.contentEditable = false;
+
+        // edited event
+        let e = new Event("labeledit");
+        dispatchEvent(e);
     })
 
     // quit editing on keydown
@@ -69,14 +73,18 @@ function addGroup(groupName) {
 
     // add card event handling
     addCardButton.addEventListener("click", () => {
-        let card = createCard("card");
-        moveCard(card, group);
+        let card = createCard("");
+        moveCard(card, group, edit=true);
     });
 
     group.appendChild(addCardButton);
 
     // insert before add group button
     board.insertBefore(group, board.lastElementChild);
+
+    // create group event
+    let e = new Event("groupadd");
+    dispatchEvent(e);
 
     return group;
 }
@@ -99,7 +107,7 @@ function createCard(text) {
 }
 
 // move card into group
-function moveCard(card, group, before=null) {
+function moveCard(card, group, edit=false, before=null) {
     // insert into card list of group
     let scroller = group.querySelector(".card-scroller")
     scroller.insertBefore(card, before);
@@ -107,6 +115,16 @@ function moveCard(card, group, before=null) {
     // scroll to card
     let y = card.offsetTop;
     scroller.scroll({ top: y, left: 0 });
+
+    // make label editable
+    if (edit) {
+        let label = card.querySelector(".label");
+        editLabel(label);
+    }
+
+    // move event
+    let e = new Event("cardmove");
+    dispatchEvent(e);
 }
 
 // handle dragstart event of group and their children card elements
@@ -175,7 +193,7 @@ function dropCard(target, mouseY) {
         
         // place dragged card before this one if mouse is above middle point
         if (mouseY < y + height / 2) {
-            moveCard(draggedElement, group, card);
+            moveCard(draggedElement, group, false, card);
             return;
         }
     }
@@ -209,10 +227,16 @@ function dropGroup(mouseX) {
 function handleBinDrop(e) {
     draggedElement.remove();
     this.style.display = "none";
+
+    // delete event
+    let ev = new Event("itemdelete");
+    dispatchEvent(ev);
 }
 
 // parse board status as JSON and save to local storage
 function save() {
+    console.log("saving");
+
     let boardSave = {}
     boardSave.groups = new Array();
 
@@ -296,6 +320,12 @@ function init() {
     addEventListener("dragend", () => {
         setTimeout(() => { document.getElementById("bin").style.display = "none";}, 0);
     })
+
+    // save points
+    addEventListener("cardmove", save);
+    addEventListener("labeledit", save);
+    addEventListener("groupadd", save);
+    addEventListener("itemdelete", save);
 
     load();
 }

@@ -104,12 +104,14 @@ body, button {
 
 .label {
     line-height: 24px;
+    min-height: 24px;
     word-break: break-word;
     border-radius: 4px;
 }
 
 .label[contenteditable="true"] {
     outline: 1px solid var(--focused-border-color);
+    padding: 0 4px 0 4px;
 }
 
 .drop-zone {
