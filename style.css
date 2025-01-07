@@ -6,7 +6,7 @@
 :root {
     --border-color: #b8b8b8;
     --hover-color: #dedede;
-    --accent-color: #808080;
+    --focused-border-color: #808080;
     --label-min-height: 24px;
     --group-width: 280px;
     --icon-size: 20px;
@@ -122,7 +122,7 @@ body, button, input {
 }
 
 .card:hover {
-    border-color: var(--accent-color);
+    border-color: var(--focused-border-color);
     transition: border-color .25s;
 }
 

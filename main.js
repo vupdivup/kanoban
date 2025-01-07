@@ -38,9 +38,11 @@ function createLabel(initialText="") {
     return label;
 }
 
+// create a group and append it to board
 function addGroup(groupName) {
     let board = document.getElementById("board");
 
+    // group wrapper
     let group = document.createElement("div");
     group.classList.add("group");
     group.draggable = true;
@@ -59,7 +61,7 @@ function addGroup(groupName) {
     let addCardButton = document.createElement("button");
     addCardButton.classList.add("add-button", "add-card-button");
 
-
+    // add icon within button
     let addIcon = document.createElement("img");
     addIcon.classList.add("icon");
     addIcon.src = "./images/add_icon.png";
@@ -74,16 +76,18 @@ function addGroup(groupName) {
 
     // name group
     beginLabelRename(groupLabel);
+
+    return group;
 }
 
 // creates a new card within the specified group
-function addCard(group) {
+function addCard(group, text) {
     // card container
     let card = document.createElement("div");
     card.classList.add("card");
     card.draggable = true;
 
-    let label = createLabel("card", true);
+    let label = createLabel(text, true);
     card.appendChild(label);
 
     // insert before add new button
@@ -241,6 +245,31 @@ function save() {
     localStorage.setItem("board", JSON.stringify(boardSave));
 }
 
+function load() {
+    // clear board
+    let board = document.getElementById("board");
+    let groups = board.querySelectorAll(".group");
+
+    groups.forEach(g => g.remove());
+
+    try {
+        let save = JSON.parse(localStorage.getItem("board"));
+
+        for (const groupSave of save.groups) {
+            let group = addGroup(groupSave.label);
+
+            for (const card of groupSave.cards) {
+                addCard(group, card);
+            }
+        }
+    }
+    catch {
+        addGroup("to do");
+        addGroup("doing");
+        addGroup("done");
+    }
+}
+
 let draggedElement;
 
 document.getElementById("add-group-button").addEventListener("click", () => addGroup("group"));
@@ -258,3 +287,5 @@ addEventListener("dragend", () => {
     console.log("end");
     setTimeout(() => { document.getElementById("trash").style.display = "none"; console.log("end");}, 0);
 })
+
+load();
