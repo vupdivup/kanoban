@@ -235,8 +235,6 @@ function handleBinDrop(e) {
 
 // parse board status as JSON and save to local storage
 function save() {
-    console.log("saving");
-
     let boardSave = {}
     boardSave.groups = new Array();
 
@@ -321,13 +319,14 @@ function init() {
         setTimeout(() => { document.getElementById("bin").style.display = "none";}, 0);
     })
 
+    load();
+
     // save points
+    // must be after load to not trigger save unnecessarily
     addEventListener("cardmove", save);
     addEventListener("labeledit", save);
     addEventListener("groupadd", save);
     addEventListener("itemdelete", save);
-
-    load();
 }
 
 let draggedElement;
