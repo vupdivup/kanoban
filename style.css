@@ -11,6 +11,7 @@
     --group-width: 280px;
     --icon-size: 20px;
     --button-size: 24px;
+    --large-gap: 16px;
     --revert-duration: .1s;
 }
 
@@ -33,6 +34,7 @@ body, button, input {
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    gap: var(--large-gap);
     height: 100vh;
     padding: 16px;
 }
@@ -41,7 +43,8 @@ body, button, input {
     display: flex;
     align-items: flex-start;
     flex-grow: 1;
-    gap: 16px;
+    gap: var(--large-gap);
+    min-height: 0;
 }
 
 .icon {
@@ -58,11 +61,11 @@ body, button, input {
     border-radius: 4px;
     border: 1px solid var(--border-color);
     transition: border-color var(--revert-duration);
-    animation: grow .25s;
+    animation: bin-grow .25s;
     transform-origin: center bottom;
 }
 
-@keyframes grow {
+@keyframes bin-grow {
     from {
         transform: scale(1, 0);
     }
@@ -121,6 +124,7 @@ body, button, input {
     flex-direction: column;
     flex-shrink: 0;
     gap: 4px;
+    max-height: 100%;
     width: var(--group-width);
     padding: 8px;
     border: 1px solid var(--border-color);
@@ -135,6 +139,9 @@ body, button, input {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-height: 0;
+    overflow-y: scroll;
+    scrollbar-width: none;
 }
 
 .card {

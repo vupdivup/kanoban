@@ -79,6 +79,11 @@ function addGroup(groupName) {
         moveCard(card, group);
     });
 
+    group.addEventListener("scroll", () => {
+        console.log(group.scrollTop);
+        group.scroll(0, 10);
+    })
+
     group.appendChild(addCardButton);
 
     // insert before add group button
@@ -109,6 +114,10 @@ function moveCard(card, group, before=null) {
     // insert into card list of group
     let scroller = group.querySelector(".card-scroller")
     scroller.insertBefore(card, before);
+
+    // scroll to card
+    let y = card.offsetTop;
+    scroller.scroll({ top: y, left: 0 });
 }
 
 // show rename input instead of text on label
