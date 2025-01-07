@@ -7,7 +7,6 @@
     --border-color: #b8b8b8;
     --hover-color: #dedede;
     --focused-border-color: #808080;
-    --label-min-height: 24px;
     --group-width: 280px;
     --icon-size: 20px;
     --button-size: 24px;
@@ -25,7 +24,7 @@ body {
     padding: 0px;
 }
 
-body, button, input {
+body, button {
     font-family: Gantari;
     font-size: 16px;
     font-weight: 400;
@@ -103,28 +102,14 @@ body, button, input {
     height: var(--button-size);
 }
 
-.label-wrapper {
-    /* flex here is used to stretch inputs correctly */
-    display: flex;
-    flex-direction: row;
-}
-
-.label-text {
-    line-height: var(--label-min-height); /* to center vertically */
-}
-
-.label-renamer {
-    height: var(--label-min-height);
+.label {
+    line-height: 24px;
+    word-break: break-word;
     border-radius: 4px;
 }
 
-.label-renamer:focus {
-    outline: none;
-    border: 1px solid var(--focused-border-color);
-}
-
-.label-text, .label-renamer {
-    flex-grow: 1;
+.label[contenteditable="true"] {
+    outline: 1px solid var(--focused-border-color);
 }
 
 .drop-zone {
@@ -142,10 +127,6 @@ body, button, input {
     padding: 8px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
-}
-
-.group-header .label-text {
-    font-weight: 500;
 }
 
 .card-scroller {
