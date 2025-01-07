@@ -58,7 +58,14 @@ function addGroup(groupName) {
     // add card button
     let addCardButton = document.createElement("button");
     addCardButton.classList.add("add-button", "add-card-button");
-    addCardButton.innerText = "+";
+
+
+    let addIcon = document.createElement("img");
+    addIcon.classList.add("icon");
+    addIcon.src = "./images/add_icon.png";
+    addIcon.draggable = false;
+    addCardButton.appendChild(addIcon);
+
     addCardButton.addEventListener("click", () => addCard(group));
     group.appendChild(addCardButton);
 

@@ -9,7 +9,7 @@
     --accent-color: #808080;
     --label-min-height: 24px;
     --group-width: 280px;
-    --icon-size: 24px;
+    --icon-size: 20px;
     --button-size: 24px;
 }
 
@@ -34,7 +34,7 @@ body, button, input {
     gap: 16px;
 }
 
-img {
+.icon {
     width: var(--icon-size);
     height: var(--icon-size);
 }
@@ -62,11 +62,11 @@ img {
 }
 
 .add-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
     padding: 0px;
-    font-size: 24px;
-    font-weight: 300;
-    line-height: var(--button-size);
     border: 1px solid white;
     border-radius: 4px;
     background-color: white;
