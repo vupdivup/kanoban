@@ -57,6 +57,11 @@ function addGroup(groupName) {
     let groupLabel = createLabel(groupName);
     header.appendChild(groupLabel);
 
+    // scrollable card list
+    let scroller = document.createElement("div");
+    scroller.classList.add("card-scroller");
+    group.appendChild(scroller);
+
     // add card button
     let addCardButton = document.createElement("button");
     addCardButton.classList.add("add-button", "add-card-button");
@@ -68,7 +73,12 @@ function addGroup(groupName) {
     addIcon.draggable = false;
     addCardButton.appendChild(addIcon);
 
-    addCardButton.addEventListener("click", () => addCard(group));
+    // add card event handling
+    addCardButton.addEventListener("click", () => {
+        let card = createCard("card");
+        moveCard(card, group);
+    });
+
     group.appendChild(addCardButton);
 
     // insert before add group button
@@ -80,21 +90,25 @@ function addGroup(groupName) {
     return group;
 }
 
-// creates a new card within the specified group
-function addCard(group, text) {
+// create card with label
+function createCard(text) {
     // card container
     let card = document.createElement("div");
     card.classList.add("card");
     card.draggable = true;
 
+    // card text label
     let label = createLabel(text, true);
     card.appendChild(label);
 
-    // insert before add new button
-    group.insertBefore(card, group.lastElementChild);
+    return card;
+}
 
-    // text input for initial naming
-    beginLabelRename(label);
+// move card into group
+function moveCard(card, group, before=null) {
+    // insert into card list of group
+    let scroller = group.querySelector(".card-scroller")
+    scroller.insertBefore(card, before);
 }
 
 // show rename input instead of text on label
@@ -186,13 +200,13 @@ function dropCard(target, mouseY) {
         
         // place dragged card before this one if mouse is above middle point
         if (mouseY < y + height / 2) {
-            group.insertBefore(draggedElement, card);
+            moveCard(draggedElement, group, card);
             return;
         }
     }
 
     // insert dragged card as last if card was placed lower than all the others
-    group.insertBefore(draggedElement, group.lastElementChild);
+    moveCard(draggedElement, group);
 }
 
 // drop group based on its X position
@@ -245,25 +259,30 @@ function save() {
     localStorage.setItem("board", JSON.stringify(boardSave));
 }
 
+// load JSON save from local storage
 function load() {
     // clear board
     let board = document.getElementById("board");
     let groups = board.querySelectorAll(".group");
-
     groups.forEach(g => g.remove());
 
     try {
+        // parse save
         let save = JSON.parse(localStorage.getItem("board"));
 
         for (const groupSave of save.groups) {
+            // create group
             let group = addGroup(groupSave.label);
 
-            for (const card of groupSave.cards) {
-                addCard(group, card);
+            for (const cardSave of groupSave.cards) {
+                // create card for group
+                let card = createCard(cardSave);
+                moveCard(card, group);
             }
         }
     }
     catch {
+        // use basic template if load failed
         addGroup("to do");
         addGroup("doing");
         addGroup("done");
@@ -284,8 +303,7 @@ addEventListener("dragstart", () => {
 })
 
 addEventListener("dragend", () => {
-    console.log("end");
-    setTimeout(() => { document.getElementById("trash").style.display = "none"; console.log("end");}, 0);
+    setTimeout(() => { document.getElementById("trash").style.display = "none";}, 0);
 })
 
 load();

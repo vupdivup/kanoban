@@ -7,13 +7,15 @@
     <title>Kanoban</title>
 </head>
 <body>
-    <div id="board">
-        <div id="trash">
-            <img src="./images/delete_icon.png" alt="Drag item here to delete">
+    <div id="workspace">
+        <div id="board">
+            <button id="add-group-button" class="add-button">
+                <img src="./images/add_icon.png" alt="Add a new group" class="icon" draggable="false">
+            </button>
         </div>
-        <button id="add-group-button" class="add-button">
-            <img src="./images/add_icon.png" alt="Add a new group" class="icon" draggable="false">
-        </button>
+        <div id="trash">
+            <img src="./images/delete_icon.png" alt="Drag item here to delete" class="icon">
+        </div>
     </div>
     <script src="./main.js"></script>
 </body>
