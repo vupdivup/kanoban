@@ -41,7 +41,7 @@ function editLabel(label) {
 }
 
 // create a group and append it to board
-function addGroup(groupName) {
+function addGroup(groupName, edit=false) {
     let board = document.getElementById("board");
 
     // group wrapper
@@ -82,6 +82,11 @@ function addGroup(groupName) {
     // insert before add group button
     board.insertBefore(group, board.lastElementChild);
 
+    if (edit) {
+        let label = group.querySelector(".label");
+        editLabel(label);
+    }
+
     // create group event
     let e = new Event("groupadd");
     dispatchEvent(e);
@@ -114,7 +119,7 @@ function moveCard(card, group, edit=false, before=null) {
 
     // scroll to card
     let y = card.offsetTop;
-    scroller.scroll({ top: y, left: 0 });
+    let scrollerHeight = scroller.offsetHeight;
 
     // make label editable
     if (edit) {
@@ -283,6 +288,10 @@ function load() {
                 let card = createCard(cardSave);
                 moveCard(card, group);
             }
+
+            // reset group scroll
+            let scroller = group.querySelector(".card-scroller");
+            scroller.scroll(0, 0);
         }
     }
     catch {
@@ -296,7 +305,8 @@ function load() {
 // configure listeners and call startup functions
 function init() {
     // add group event
-    document.getElementById("add-group-button").addEventListener("click", () => addGroup("group"));
+    let addGroupButton = document.getElementById("add-group-button")
+    addGroupButton.addEventListener("click", () => addGroup("new group", edit=true));
 
     // board drag & drop events
     let board = document.getElementById("board");

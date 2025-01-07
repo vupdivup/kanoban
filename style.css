@@ -34,6 +34,7 @@ body, button {
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    justify-content: space-between;
     gap: var(--large-gap);
     height: 100vh;
     padding: 16px;
@@ -42,7 +43,6 @@ body, button {
 #board {
     display: flex;
     align-items: flex-start;
-    flex-grow: 1;
     gap: var(--large-gap);
     min-height: 0;
 }
@@ -98,8 +98,8 @@ body, button {
 }
 
 #add-group-button {
-    width: 120px;
-    height: var(--button-size);
+    min-width: var(--group-width);
+    align-self: stretch;
 }
 
 .label {
