@@ -8,7 +8,9 @@
     --hover-color: #dedede;
     --accent-color: #808080;
     --label-min-height: 24px;
-    --add-button-size: 24px;
+    --group-width: 280px;
+    --icon-size: 24px;
+    --button-size: 24px;
 }
 
 * {
@@ -23,6 +25,7 @@ body {
 body, button, input {
     font-family: Gantari;
     font-size: 16px;
+    font-weight: 400;
 }
 
 #board {
@@ -31,9 +34,39 @@ body, button, input {
     gap: 16px;
 }
 
+img {
+    width: var(--icon-size);
+    height: var(--icon-size);
+}
+
+#trash {
+    display: none; /* changed to flex in script */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    border-radius: 4px;
+    align-self: stretch;
+    border: 1px solid var(--border-color);
+    animation: grow .25s;
+    transform-origin: left center;
+}
+
+@keyframes grow {
+    from {
+        transform: scale(0, 1);
+    }
+    to {
+        transform: scale(1, 1);
+    }
+}
+
 .add-button {
     cursor: pointer;
+    padding: 0px;
     font-size: 24px;
+    font-weight: 300;
+    line-height: var(--button-size);
     border: 1px solid white;
     border-radius: 4px;
     background-color: white;
@@ -45,8 +78,8 @@ body, button, input {
 }
 
 #add-group-button {
-    align-self: stretch;
-    width: var(--add-button-size);
+    width: 120px;
+    height: var(--button-size);
 }
 
 .label-wrapper {
@@ -72,10 +105,14 @@ body, button, input {
     flex-direction: column;
     flex-shrink: 0;
     gap: 4px;
-    width: 280px;
+    width: var(--group-width);
     padding: 8px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
+}
+
+.group-header .label-text {
+    font-weight: 500;
 }
 
 .card {
@@ -90,5 +127,5 @@ body, button, input {
 }
 
 .add-card-button {
-    height: var(--add-button-size);
+    height: var(--button-size);
 }

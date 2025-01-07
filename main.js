@@ -45,7 +45,7 @@ function addGroup(groupName) {
     group.classList.add("group");
     group.draggable = true;
 
-    group.addEventListener("dragstart", groupDragstartHandler);
+    group.addEventListener("dragstart", handleDragstart);
 
     // header section
     let header = document.createElement("div");
@@ -78,8 +78,6 @@ function addCard(group) {
 
     let label = createLabel("card", true);
     card.appendChild(label);
-
-    card.addEventListener("dragstart", cardDragstartHandler);
 
     // insert before add new button
     group.insertBefore(card, group.lastElementChild);
@@ -119,19 +117,20 @@ function submitLabelRename(label) {
     text.innerText = renamer.value;
 }
 
-// handle dragstart event of card elements
-function cardDragstartHandler(e) {    
-    // prevent parent group from firing the dragover event twice
-    e.stopPropagation();
-
+// handle dragstart event of group and their children card elements
+function handleDragstart(e) {
     draggedElement = e.target;
-    e.dataTransfer.setData("text/plain", "card");
-}
 
-// handle dragstart event of group elements
-function groupDragstartHandler(e) {
-    draggedElement = e.target;
-    e.dataTransfer.setData("text/plain", "group");
+    let data;
+
+    if (draggedElement.classList.contains("group")) {
+        data = "group";
+    }
+    else {
+        data = "card";
+    }
+
+    e.dataTransfer.setData("text/plain", data);
 }
 
 // set drop effect
@@ -141,7 +140,13 @@ function dragoverHandler(e) {
 }
 
 // handle drop based on whether a card or a group is being moved
-function dropHandler(e) {    
+function dropHandler(e) {
+    // remove if dragged to trash
+    if (e.target.id === "trash") {
+        draggedElement.remove();
+        return;
+    }
+
     switch(e.dataTransfer.getData("text/plain")) {
         case "card":
             dropCard(e.target, e.clientY);
@@ -237,3 +242,12 @@ addGroup("New Group");
 let board = document.getElementById("board");
 board.addEventListener("dragover", dragoverHandler);
 board.addEventListener("drop", dropHandler);
+
+addEventListener("dragstart", () => {
+    setTimeout(() => { document.getElementById("trash").style.display = "flex"}, 0);
+})
+
+addEventListener("dragend", () => {
+    console.log("end");
+    setTimeout(() => { document.getElementById("trash").style.display = "none"; console.log("end");}, 0);
+})
