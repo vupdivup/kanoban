@@ -1,147 +1,170 @@
 // create an editable text label for cards and group names
 function createLabel(initialText="") {
     let label = document.createElement("div");
-    label.classList.add("label-wrapper");
+    label.classList.add("label");
+    label.innerText = initialText;
+    
+    // edit label on double click
+    label.addEventListener("dblclick", () => editLabel(label));
 
-    // inner text element
-    let text = document.createElement("div");
-    text.classList.add("label-text");
-    text.innerText = initialText;
-    label.appendChild(text);
+    // quit editing on blur
+    label.addEventListener("blur", () => {
+        label.contentEditable = false;
 
-    // hidden rename input
-    let renamer = document.createElement("input");
-    renamer.classList.add("label-renamer");
-    renamer.style.display = "none";
-    label.appendChild(renamer);
+        // edited event
+        let e = new Event("labeledit");
+        dispatchEvent(e);
+    })
 
-    // show rename input on double click
-    label.addEventListener("dblclick", () => beginLabelRename(label));
+    // quit editing on keydown
+    label.addEventListener("keydown", (e) => {
+        if (e.code !== "Escape" && e.code !== "Enter") return;
 
-    // cancel rename on blur
-    renamer.addEventListener("blur", () => endLabelRename(text, renamer));
-
-    // keydown handling
-    renamer.addEventListener("keydown", (e) => {
-        switch(e.code) {
-            // submit rename on Enter key press
-            case "Enter":
-                submitLabelRename(label);
-                break;
-            // blur if Esc is pressed
-            case "Escape":
-                renamer.blur();
-                break;
-        }
+        label.blur();
     })
 
     return label;
 }
 
+// make label have an editable text input
+function editLabel(label) {
+    label.contentEditable = true;
+    label.focus();
+
+    // select all text within contenteditable div
+    let selection = window.getSelection();
+    selection.removeAllRanges();
+
+    let r = document.createRange();
+    r.selectNodeContents(label);
+    selection.addRange(r);
+}
+
+// create a group and append it to board
 function addGroup(groupName) {
     let board = document.getElementById("board");
 
+    // group wrapper
     let group = document.createElement("div");
     group.classList.add("group");
     group.draggable = true;
 
-    group.addEventListener("dragstart", groupDragstartHandler);
+    group.addEventListener("dragstart", handleDragstart);
 
-    // header section
-    let header = document.createElement("div");
-    header.classList.add("group-header");
-    group.appendChild(header);
-
+    // label
     let groupLabel = createLabel(groupName);
-    header.appendChild(groupLabel);
+    group.appendChild(groupLabel);
+
+    // scrollable card list
+    let scroller = document.createElement("div");
+    scroller.classList.add("card-scroller");
+    group.appendChild(scroller);
 
     // add card button
     let addCardButton = document.createElement("button");
     addCardButton.classList.add("add-button", "add-card-button");
-    addCardButton.innerText = "+";
-    addCardButton.addEventListener("click", () => addCard(group));
+
+    // add icon within button
+    let addIcon = document.createElement("img");
+    addIcon.classList.add("icon");
+    addIcon.src = "./images/add_icon.png";
+    addIcon.draggable = false;
+    addCardButton.appendChild(addIcon);
+
+    // add card event handling
+    addCardButton.addEventListener("click", () => {
+        let card = createCard("");
+        moveCard(card, group, edit=true);
+    });
+
     group.appendChild(addCardButton);
 
     // insert before add group button
     board.insertBefore(group, board.lastElementChild);
 
-    // name group
-    beginLabelRename(groupLabel);
+    // create group event
+    let e = new Event("groupadd");
+    dispatchEvent(e);
+
+    return group;
 }
 
-// creates a new card within the specified group
-function addCard(group) {
+// create card with label
+function createCard(text) {
     // card container
     let card = document.createElement("div");
     card.classList.add("card");
     card.draggable = true;
 
-    let label = createLabel("card", true);
+    // card text label
+    let label = createLabel(text, true);
     card.appendChild(label);
 
-    card.addEventListener("dragstart", cardDragstartHandler);
+    // drag event handlers
+    card.addEventListener("dragstart", handleDragstart);
 
-    // insert before add new button
-    group.insertBefore(card, group.lastElementChild);
-
-    // text input for initial naming
-    beginLabelRename(label);
+    return card;
 }
 
-// show rename input instead of text on label
-function beginLabelRename(label) {
-    let text = label.querySelector(".label-text");
-    let renamer = label.querySelector(".label-renamer");
+// move card into group
+function moveCard(card, group, edit=false, before=null) {
+    // insert into card list of group
+    let scroller = group.querySelector(".card-scroller")
+    scroller.insertBefore(card, before);
 
-    text.style.display = "none";
-    renamer.style.display = "block";
-    renamer.value = text.innerText;
-    renamer.focus();
-    renamer.select();
+    // scroll to card
+    let y = card.offsetTop;
+    scroller.scroll({ top: y, left: 0 });
+
+    // make label editable
+    if (edit) {
+        let label = card.querySelector(".label");
+        editLabel(label);
+    }
+
+    // move event
+    let e = new Event("cardmove");
+    dispatchEvent(e);
 }
 
-// hide rename input of label
-function endLabelRename(text, renamer) {
-    // submitting rename fires blur event of input
-    // this is to prevent the function from running twice due to blur handling
-    if (renamer.style.display === "none") return;
+// handle dragstart event of group and their children card elements
+function handleDragstart(e) {
+    if (e.handled) return;
 
-    renamer.style.display = "none";
-    text.style.display = "block";
-}
+    draggedElement = e.currentTarget;
 
-// apply new name to label
-function submitLabelRename(label) {
-    let text = label.querySelector(".label-text");
-    let renamer = label.querySelector(".label-renamer");
+    let data;
 
-    endLabelRename(text, renamer);
-    text.innerText = renamer.value;
-}
+    // define item type
+    if (draggedElement.classList.contains("group")) {
+        data = "group";
+    }
+    else {
+        data = "card";
+    }
 
-// handle dragstart event of card elements
-function cardDragstartHandler(e) {    
-    // prevent parent group from firing the dragover event twice
-    e.stopPropagation();
+    e.dataTransfer.setData("text/plain", data);
 
-    draggedElement = e.target;
-    e.dataTransfer.setData("text/plain", "card");
-}
-
-// handle dragstart event of group elements
-function groupDragstartHandler(e) {
-    draggedElement = e.target;
-    e.dataTransfer.setData("text/plain", "group");
+    // mark event as handled to ensure that bubbling up to group level causes no problems
+    e.handled = true;
 }
 
 // set drop effect
-function dragoverHandler(e) {
+function handleDragover(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
 }
 
+function focusDropZone(e) {
+    e.target.classList.add("drop-zone");
+}
+
+function blurDropZone(e) {
+    e.target.classList.remove("drop-zone");
+}
+
 // handle drop based on whether a card or a group is being moved
-function dropHandler(e) {    
+function handleBoardDrop(e) {
     switch(e.dataTransfer.getData("text/plain")) {
         case "card":
             dropCard(e.target, e.clientY);
@@ -170,13 +193,13 @@ function dropCard(target, mouseY) {
         
         // place dragged card before this one if mouse is above middle point
         if (mouseY < y + height / 2) {
-            group.insertBefore(draggedElement, card);
+            moveCard(draggedElement, group, false, card);
             return;
         }
     }
 
     // insert dragged card as last if card was placed lower than all the others
-    group.insertBefore(draggedElement, group.lastElementChild);
+    moveCard(draggedElement, group);
 }
 
 // drop group based on its X position
@@ -200,11 +223,113 @@ function dropGroup(mouseX) {
     board.insertBefore(draggedElement, board.lastElementChild);
 }
 
+// remove item if dragged to trash bin
+function handleBinDrop(e) {
+    draggedElement.remove();
+    this.style.display = "none";
+
+    // delete event
+    let ev = new Event("itemdelete");
+    dispatchEvent(ev);
+}
+
+// parse board status as JSON and save to local storage
+function save() {
+    console.log("saving");
+
+    let boardSave = {}
+    boardSave.groups = new Array();
+
+    let groups = document.querySelectorAll(".group");
+
+    // iterate over groups
+    for (const group of groups) {
+        let groupSave = {};
+
+        // first label within group is always the group label
+        groupSave.label = group.querySelector(".label").innerText;
+        groupSave.cards = new Array();
+
+        let cards = group.querySelectorAll(".card");
+        
+        // cards within group
+        for (const card of cards) {
+            let cardLabel = card.querySelector(".label").innerText;
+            groupSave.cards.push(cardLabel);
+        }
+
+        boardSave.groups.push(groupSave);
+    }
+
+    // save to local storage
+    localStorage.setItem("board", JSON.stringify(boardSave));
+}
+
+// load JSON save from local storage
+function load() {
+    // clear board
+    let board = document.getElementById("board");
+    let groups = board.querySelectorAll(".group");
+    groups.forEach(g => g.remove());
+
+    try {
+        // parse save
+        let save = JSON.parse(localStorage.getItem("board"));
+
+        for (const groupSave of save.groups) {
+            // create group
+            let group = addGroup(groupSave.label);
+
+            for (const cardSave of groupSave.cards) {
+                // create card for group
+                let card = createCard(cardSave);
+                moveCard(card, group);
+            }
+        }
+    }
+    catch {
+        // use basic template if load failed
+        addGroup("to do");
+        addGroup("doing");
+        addGroup("done");
+    }
+}
+
+// configure listeners and call startup functions
+function init() {
+    // add group event
+    document.getElementById("add-group-button").addEventListener("click", () => addGroup("group"));
+
+    // board drag & drop events
+    let board = document.getElementById("board");
+    board.addEventListener("dragover", handleDragover);
+    board.addEventListener("drop", handleBoardDrop);
+
+    // deletion drag & drop events
+    let bin = document.getElementById("bin");
+    bin.addEventListener("dragover", handleDragover);
+    bin.addEventListener("drop", handleBinDrop);
+    bin.addEventListener("dragenter", focusDropZone);
+    bin.addEventListener("dragleave", blurDropZone);
+    bin.addEventListener("drop", blurDropZone);
+
+    addEventListener("dragstart", () => {
+        setTimeout(() => { document.getElementById("bin").style.display = "flex"}, 0);
+    })
+
+    addEventListener("dragend", () => {
+        setTimeout(() => { document.getElementById("bin").style.display = "none";}, 0);
+    })
+
+    // save points
+    addEventListener("cardmove", save);
+    addEventListener("labeledit", save);
+    addEventListener("groupadd", save);
+    addEventListener("itemdelete", save);
+
+    load();
+}
+
 let draggedElement;
 
-document.getElementById("add-group-button").addEventListener("click", () => addGroup("group"));
-addGroup("New Group");
-
-let board = document.getElementById("board");
-board.addEventListener("dragover", dragoverHandler);
-board.addEventListener("drop", dropHandler);
+init();

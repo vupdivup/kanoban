@@ -6,9 +6,13 @@
 :root {
     --border-color: #b8b8b8;
     --hover-color: #dedede;
-    --accent-color: #808080;
-    --label-min-height: 24px;
-    --add-button-size: 24px;
+    --focused-border-color: #808080;
+    --group-width: 280px;
+    --icon-size: 20px;
+    --button-size: 24px;
+    --large-gap: 16px;
+    --transition-duration: .25s;
+    --revert-duration: .1s;
 }
 
 * {
@@ -17,26 +21,69 @@
 
 body {
     margin: 0px;
-    padding: 16px;
+    padding: 0px;
 }
 
-body, button, input {
+body, button {
     font-family: Gantari;
     font-size: 16px;
+    font-weight: 400;
+}
+
+#workspace {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--large-gap);
+    height: 100vh;
+    padding: 16px;
 }
 
 #board {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
+    flex-grow: 1;
+    gap: var(--large-gap);
+    min-height: 0;
+}
+
+.icon {
+    width: var(--icon-size);
+    height: var(--icon-size);
+}
+
+#bin {
+    display: none; /* changed to flex in script */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 48px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    transition: border-color var(--revert-duration);
+    animation: bin-grow .25s;
+    transform-origin: center bottom;
+}
+
+@keyframes bin-grow {
+    from {
+        transform: scale(1, 0);
+    }
+    to {
+        transform: scale(1, 1);
+    }
 }
 
 .add-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
-    font-size: 24px;
+    padding: 0px;
     border: 1px solid white;
     border-radius: 4px;
     background-color: white;
+    transition: border-color var(--revert-duration);
 }
 
 .add-button:hover {
@@ -44,27 +91,32 @@ body, button, input {
     transition: all .25s;
 }
 
+.add-button:focus {
+    outline: none;
+    border-color: var(--focused-border-color);
+    transition: border-color var(--transition-duration);
+}
+
 #add-group-button {
-    align-self: stretch;
-    width: var(--add-button-size);
+    width: 120px;
+    height: var(--button-size);
 }
 
-.label-wrapper {
-    /* flex here is used to stretch inputs correctly */
-    display: flex;
-    flex-direction: row;
+.label {
+    line-height: 24px;
+    min-height: 24px;
+    word-break: break-word;
+    border-radius: 4px;
 }
 
-.label-text {
-    line-height: var(--label-min-height); /* to center vertically */
+.label[contenteditable="true"] {
+    outline: 1px solid var(--focused-border-color);
+    padding: 0 4px 0 4px;
 }
 
-.label-renamer {
-    height: var(--label-min-height);
-}
-
-.label-text, .label-renamer {
-    flex-grow: 1;
+.drop-zone {
+    border-color: var(--focused-border-color) !important;
+    transition: border-color .25s;
 }
 
 .group {
@@ -72,10 +124,20 @@ body, button, input {
     flex-direction: column;
     flex-shrink: 0;
     gap: 4px;
-    width: 280px;
+    max-height: 100%;
+    width: var(--group-width);
     padding: 8px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
+}
+
+.card-scroller {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 0;
+    overflow-y: scroll;
+    scrollbar-width: none;
 }
 
 .card {
@@ -85,10 +147,10 @@ body, button, input {
 }
 
 .card:hover {
-    border-color: var(--accent-color);
+    border-color: var(--focused-border-color);
     transition: border-color .25s;
 }
 
 .add-card-button {
-    height: var(--add-button-size);
+    height: var(--button-size);
 }
