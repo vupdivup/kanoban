@@ -11,6 +11,7 @@
     --group-width: 280px;
     --icon-size: 20px;
     --button-size: 24px;
+    --revert-duration: .1s;
 }
 
 * {
@@ -48,7 +49,7 @@ body, button, input {
     height: var(--icon-size);
 }
 
-#trash {
+#bin {
     display: none; /* changed to flex in script */
     flex-direction: column;
     justify-content: center;
@@ -56,6 +57,7 @@ body, button, input {
     height: 48px;
     border-radius: 4px;
     border: 1px solid var(--border-color);
+    transition: border-color var(--revert-duration);
     animation: grow .25s;
     transform-origin: center bottom;
 }
@@ -78,6 +80,7 @@ body, button, input {
     border: 1px solid white;
     border-radius: 4px;
     background-color: white;
+    transition: border-color var(--revert-duration);
 }
 
 .add-button:hover {
@@ -106,6 +109,11 @@ body, button, input {
 
 .label-text, .label-renamer {
     flex-grow: 1;
+}
+
+.drop-zone {
+    border-color: var(--focused-border-color) !important;
+    transition: border-color .25s;
 }
 
 .group {

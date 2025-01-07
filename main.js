@@ -159,19 +159,21 @@ function handleDragstart(e) {
 }
 
 // set drop effect
-function dragoverHandler(e) {
+function handleDragover(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
 }
 
-// handle drop based on whether a card or a group is being moved
-function dropHandler(e) {
-    // remove if dragged to trash
-    if (e.target.id === "trash") {
-        draggedElement.remove();
-        return;
-    }
+function focusDropZone(e) {
+    e.target.classList.add("drop-zone");
+}
 
+function blurDropZone(e) {
+    e.target.classList.remove("drop-zone");
+}
+
+// handle drop based on whether a card or a group is being moved
+function handleBoardDrop(e) {
     switch(e.dataTransfer.getData("text/plain")) {
         case "card":
             dropCard(e.target, e.clientY);
@@ -228,6 +230,11 @@ function dropGroup(mouseX) {
 
     // insert as last if group was dragged way to the right
     board.insertBefore(draggedElement, board.lastElementChild);
+}
+
+// remove item if dragged to trash bin
+function handleBinDrop(e) {
+    draggedElement.remove();
 }
 
 // parse board status as JSON and save to local storage
@@ -289,21 +296,35 @@ function load() {
     }
 }
 
+// configure listeners and call startup functions
+function init() {
+    // add group event
+    document.getElementById("add-group-button").addEventListener("click", () => addGroup("group"));
+
+    // board drag & drop events
+    let board = document.getElementById("board");
+    board.addEventListener("dragover", handleDragover);
+    board.addEventListener("drop", handleBoardDrop);
+
+    // deletion drag & drop events
+    let bin = document.getElementById("bin");
+    bin.addEventListener("dragover", handleDragover);
+    bin.addEventListener("drop", handleBinDrop);
+    bin.addEventListener("dragenter", focusDropZone);
+    bin.addEventListener("dragleave", blurDropZone);
+    bin.addEventListener("drop", blurDropZone);
+
+    addEventListener("dragstart", () => {
+        setTimeout(() => { document.getElementById("bin").style.display = "flex"}, 0);
+    })
+
+    addEventListener("dragend", () => {
+        setTimeout(() => { document.getElementById("bin").style.display = "none";}, 0);
+    })
+
+    load();
+}
+
 let draggedElement;
 
-document.getElementById("add-group-button").addEventListener("click", () => addGroup("group"));
-addGroup("New Group");
-
-let board = document.getElementById("board");
-board.addEventListener("dragover", dragoverHandler);
-board.addEventListener("drop", dropHandler);
-
-addEventListener("dragstart", () => {
-    setTimeout(() => { document.getElementById("trash").style.display = "flex"}, 0);
-})
-
-addEventListener("dragend", () => {
-    setTimeout(() => { document.getElementById("trash").style.display = "none";}, 0);
-})
-
-load();
+init();
