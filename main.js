@@ -11,9 +11,7 @@ function createLabel(initialText="") {
     label.addEventListener("blur", () => {
         label.contentEditable = false;
 
-        // edited event
-        let e = new Event("labeledit");
-        dispatchEvent(e);
+        save();
     })
 
     // quit editing on keydown
@@ -40,10 +38,8 @@ function editLabel(label) {
     selection.addRange(r);
 }
 
-// create a group and append it to board
-function addGroup(groupName, edit=false) {
-    let board = document.getElementById("board");
-
+// create a group for storing cards
+function createGroup(label) {
     // group wrapper
     let group = document.createElement("div");
     group.classList.add("group");
@@ -52,7 +48,7 @@ function addGroup(groupName, edit=false) {
     group.addEventListener("dragstart", handleDragstart);
 
     // label
-    let groupLabel = createLabel(groupName);
+    let groupLabel = createLabel(label);
     group.appendChild(groupLabel);
 
     // scrollable card list
@@ -79,19 +75,27 @@ function addGroup(groupName, edit=false) {
 
     group.appendChild(addCardButton);
 
-    // insert before add group button
-    board.insertBefore(group, board.lastElementChild);
+    return group;
+}
 
+// move group within board
+function moveGroup(group, edit, saveAfter=true, before=null) {
+    let board = document.getElementById("board");
+
+    // ensure to insert before add new button
+    if (!before) {
+        before = board.lastElementChild;
+    }
+
+    board.insertBefore(group, before);
+
+    // make editable if specified
     if (edit) {
         let label = group.querySelector(".label");
         editLabel(label);
     }
 
-    // create group event
-    let e = new Event("groupadd");
-    dispatchEvent(e);
-
-    return group;
+    if (saveAfter) save();
 }
 
 // create card with label
@@ -112,7 +116,7 @@ function createCard(text) {
 }
 
 // move card into group
-function moveCard(card, group, edit=false, before=null) {
+function moveCard(card, group, edit=false, saveAfter=true, before=null) {
     // insert into card list of group
     let scroller = group.querySelector(".card-scroller")
     scroller.insertBefore(card, before);
@@ -127,9 +131,7 @@ function moveCard(card, group, edit=false, before=null) {
         editLabel(label);
     }
 
-    // move event
-    let e = new Event("cardmove");
-    dispatchEvent(e);
+    if (saveAfter) save();
 }
 
 // handle dragstart event of group and their children card elements
@@ -198,7 +200,7 @@ function dropCard(target, mouseY) {
         
         // place dragged card before this one if mouse is above middle point
         if (mouseY < y + height / 2) {
-            moveCard(draggedElement, group, false, card);
+            moveCard(draggedElement, group, false, true, card);
             return;
         }
     }
@@ -209,7 +211,6 @@ function dropCard(target, mouseY) {
 
 // drop group based on its X position
 function dropGroup(mouseX) {
-    let board = document.getElementById("board");
     let groups = board.querySelectorAll(".group");
 
     // iterate over groups
@@ -218,14 +219,15 @@ function dropGroup(mouseX) {
         let x = rect.x;
         let width = rect.width;
 
+        // place dragged before current group if mouse x is less than current's middle point 
         if (mouseX < x + width / 2) {
-            board.insertBefore(draggedElement, group);
+            moveGroup(draggedElement, false, true, group);
             return;
         }
     }
 
     // insert as last if group was dragged way to the right
-    board.insertBefore(draggedElement, board.lastElementChild);
+    moveGroup(draggedElement, false);
 }
 
 // remove item if dragged to trash bin
@@ -233,9 +235,7 @@ function handleBinDrop(e) {
     draggedElement.remove();
     this.style.display = "none";
 
-    // delete event
-    let ev = new Event("itemdelete");
-    dispatchEvent(ev);
+    save();
 }
 
 // parse board status as JSON and save to local storage
@@ -281,12 +281,13 @@ function load() {
 
         for (const groupSave of save.groups) {
             // create group
-            let group = addGroup(groupSave.label);
+            let group = createGroup(groupSave.label);
+            moveGroup(group, false, false);
 
             for (const cardSave of groupSave.cards) {
                 // create card for group
                 let card = createCard(cardSave);
-                moveCard(card, group);
+                moveCard(card, group, false, false);
             }
 
             // reset group scroll
@@ -296,9 +297,13 @@ function load() {
     }
     catch {
         // use basic template if load failed
-        addGroup("to do");
-        addGroup("doing");
-        addGroup("done");
+        let toDo = createGroup("to do");
+        let doing = createGroup("doing");
+        let done = createGroup("done");
+
+        moveGroup(toDo, false, false);
+        moveGroup(doing, false, false);
+        moveGroup(done, false, false);
     }
 }
 
@@ -306,7 +311,10 @@ function load() {
 function init() {
     // add group event
     let addGroupButton = document.getElementById("add-group-button")
-    addGroupButton.addEventListener("click", () => addGroup("new group", edit=true));
+    addGroupButton.addEventListener("click", () => {
+        let group = createGroup("new group");
+        moveGroup(group, true);
+    });
 
     // board drag & drop events
     let board = document.getElementById("board");
@@ -330,13 +338,6 @@ function init() {
     })
 
     load();
-
-    // save points
-    // must be after load to not trigger save unnecessarily
-    addEventListener("cardmove", save);
-    addEventListener("labeledit", save);
-    addEventListener("groupadd", save);
-    addEventListener("itemdelete", save);
 }
 
 let draggedElement;
