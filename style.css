@@ -40,6 +40,16 @@ body, button {
     padding: 16px;
 }
 
+#board-scroller {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    scrollbar-width: none;
+
+}
+
 #board {
     display: flex;
     align-items: flex-start;
