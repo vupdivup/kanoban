@@ -11,14 +11,12 @@ function createLabel(initialText="") {
     label.addEventListener("blur", () => {
         label.contentEditable = false;
 
-        // edited event
-        let e = new Event("labeledit");
-        dispatchEvent(e);
+        save();
     })
 
     // quit editing on keydown
     label.addEventListener("keydown", (e) => {
-        if (e.code !== "Escape" && e.code !== "Enter") return;
+        if (e.code !== "Enter") return;
 
         label.blur();
     })
@@ -40,10 +38,8 @@ function editLabel(label) {
     selection.addRange(r);
 }
 
-// create a group and append it to board
-function addGroup(groupName) {
-    let board = document.getElementById("board");
-
+// create a group for storing cards
+function createGroup(label) {
     // group wrapper
     let group = document.createElement("div");
     group.classList.add("group");
@@ -51,8 +47,11 @@ function addGroup(groupName) {
 
     group.addEventListener("dragstart", handleDragstart);
 
+    group.addEventListener("dragenter", handleDragenter);
+    group.addEventListener("dragleave", handleDragleave);
+
     // label
-    let groupLabel = createLabel(groupName);
+    let groupLabel = createLabel(label);
     group.appendChild(groupLabel);
 
     // scrollable card list
@@ -74,19 +73,37 @@ function addGroup(groupName) {
     // add card event handling
     addCardButton.addEventListener("click", () => {
         let card = createCard("");
-        moveCard(card, group, edit=true);
+        moveCard(card, group, { edit: true });
     });
 
     group.appendChild(addCardButton);
 
-    // insert before add group button
-    board.insertBefore(group, board.lastElementChild);
-
-    // create group event
-    let e = new Event("groupadd");
-    dispatchEvent(e);
-
     return group;
+}
+
+// move group within board
+function moveGroup(group, options={}) {
+    let { edit = false, scroll = true, save = true, before = null } = options;
+
+    let board = document.getElementById("board");
+
+    // ensure to insert before add new button
+    if (!before) {
+        before = board.lastElementChild;
+    }
+
+    board.insertBefore(group, before);
+
+    // make editable if specified
+    if (edit) {
+        let label = group.querySelector(".label");
+        editLabel(label);
+    }
+
+    if (save) window.save();
+
+    // scroll to end of board
+    if (scroll) group.scrollIntoView({ block: "nearest" });
 }
 
 // create card with label
@@ -102,19 +119,22 @@ function createCard(text) {
 
     // drag event handlers
     card.addEventListener("dragstart", handleDragstart);
+    card.addEventListener("dragenter", handleDragenter);
+    card.addEventListener("dragleave", handleDragleave);
 
     return card;
 }
 
 // move card into group
-function moveCard(card, group, edit=false, before=null) {
+function moveCard(card, group, options={}) {
+    let { edit=false, scroll=true, save=true, before=null } = options;
+
     // insert into card list of group
     let scroller = group.querySelector(".card-scroller")
     scroller.insertBefore(card, before);
 
     // scroll to card
-    let y = card.offsetTop;
-    scroller.scroll({ top: y, left: 0 });
+    if (scroll) card.scrollIntoView({ block: "nearest" });
 
     // make label editable
     if (edit) {
@@ -122,9 +142,7 @@ function moveCard(card, group, edit=false, before=null) {
         editLabel(label);
     }
 
-    // move event
-    let e = new Event("cardmove");
-    dispatchEvent(e);
+    if (save) window.save();
 }
 
 // handle dragstart event of group and their children card elements
@@ -155,12 +173,26 @@ function handleDragover(e) {
     e.dataTransfer.dropEffect = "move";
 }
 
-function focusDropZone(e) {
-    e.target.classList.add("drop-zone");
+// highlight drop zone
+function handleDragenter(e) {
+    e.currentTarget.classList.add("drop-zone");
 }
 
-function blurDropZone(e) {
-    e.target.classList.remove("drop-zone");
+// remove drop zone highlight if drag leaves element
+function handleDragleave(e) {
+    // if mouse is still within target, don't remove dropzone styling
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+
+    e.currentTarget.classList.remove("drop-zone");
+}
+
+// remove all drop zone highlights
+function handleDragend(e) {
+    let dropZones = document.querySelectorAll(".drop-zone");
+
+    for (const dz of dropZones) {
+        dz.classList.remove("drop-zone");
+    }
 }
 
 // handle drop based on whether a card or a group is being moved
@@ -193,7 +225,7 @@ function dropCard(target, mouseY) {
         
         // place dragged card before this one if mouse is above middle point
         if (mouseY < y + height / 2) {
-            moveCard(draggedElement, group, false, card);
+            moveCard(draggedElement, group, { before: card });
             return;
         }
     }
@@ -204,7 +236,6 @@ function dropCard(target, mouseY) {
 
 // drop group based on its X position
 function dropGroup(mouseX) {
-    let board = document.getElementById("board");
     let groups = board.querySelectorAll(".group");
 
     // iterate over groups
@@ -213,30 +244,29 @@ function dropGroup(mouseX) {
         let x = rect.x;
         let width = rect.width;
 
+        // place dragged before current group if mouse x is less than current's middle point 
         if (mouseX < x + width / 2) {
-            board.insertBefore(draggedElement, group);
+            moveGroup(draggedElement, { before: group });
             return;
         }
     }
 
     // insert as last if group was dragged way to the right
-    board.insertBefore(draggedElement, board.lastElementChild);
+    moveGroup(draggedElement);
 }
 
 // remove item if dragged to trash bin
-function handleBinDrop(e) {
+function moveItemToBin() {
     draggedElement.remove();
-    this.style.display = "none";
 
-    // delete event
-    let ev = new Event("itemdelete");
-    dispatchEvent(ev);
+    // hide bin
+    // this.style.display = "none";
+
+    save();
 }
 
 // parse board status as JSON and save to local storage
 function save() {
-    console.log("saving");
-
     let boardSave = {}
     boardSave.groups = new Array();
 
@@ -278,27 +308,41 @@ function load() {
 
         for (const groupSave of save.groups) {
             // create group
-            let group = addGroup(groupSave.label);
+            let group = createGroup(groupSave.label);
+            moveGroup(group, { scroll: false, save: false });
 
             for (const cardSave of groupSave.cards) {
                 // create card for group
                 let card = createCard(cardSave);
-                moveCard(card, group);
+                moveCard(card, group, { save: false, scroll: false });
             }
+
+            // reset group scroll
+            let scroller = group.querySelector(".card-scroller");
+            scroller.scroll(0, 0);
         }
     }
     catch {
         // use basic template if load failed
-        addGroup("to do");
-        addGroup("doing");
-        addGroup("done");
+        let toDo = createGroup("to do");
+        let doing = createGroup("doing");
+        let done = createGroup("done");
+
+        moveGroup(toDo, { save: false, scroll: false });
+        moveGroup(doing, { save: false, scroll: false });
+        moveGroup(done, { save: false, scroll: false });
     }
 }
 
 // configure listeners and call startup functions
 function init() {
     // add group event
-    document.getElementById("add-group-button").addEventListener("click", () => addGroup("group"));
+    let addGroupButton = document.getElementById("add-group-button")
+    addGroupButton.addEventListener("click", () => {
+        let group = createGroup("");
+        moveGroup(group, { edit: true, scroll: false });
+        addGroupButton.scrollIntoView();
+    });
 
     // board drag & drop events
     let board = document.getElementById("board");
@@ -308,24 +352,26 @@ function init() {
     // deletion drag & drop events
     let bin = document.getElementById("bin");
     bin.addEventListener("dragover", handleDragover);
-    bin.addEventListener("drop", handleBinDrop);
-    bin.addEventListener("dragenter", focusDropZone);
-    bin.addEventListener("dragleave", blurDropZone);
-    bin.addEventListener("drop", blurDropZone);
+    bin.addEventListener("drop", moveItemToBin);
+    bin.addEventListener("dragenter", handleDragenter);
+    bin.addEventListener("dragleave", handleDragleave);
 
+    // drag end - document-wide
+    document.addEventListener("dragend", handleDragend);
+
+    // show bin when dragging
+    // timeout is to ensure that drag starts before layout is updated
     addEventListener("dragstart", () => {
-        setTimeout(() => { document.getElementById("bin").style.display = "flex"}, 0);
+        setTimeout(() => { bin.style.display = "flex"}, 0);
     })
 
-    addEventListener("dragend", () => {
-        setTimeout(() => { document.getElementById("bin").style.display = "none";}, 0);
-    })
+    // hide bin
+    document.addEventListener("dragend", () => { bin.style.display = "none"; });
 
-    // save points
-    addEventListener("cardmove", save);
-    addEventListener("labeledit", save);
-    addEventListener("groupadd", save);
-    addEventListener("itemdelete", save);
+    // blur on Escape press
+    document.addEventListener("keydown", e => {
+        if (e.code === "Escape") document.activeElement.blur();
+    })
 
     load();
 }

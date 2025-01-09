@@ -5,18 +5,16 @@
 
 :root {
     --border-color: #b8b8b8;
-    --hover-color: #dedede;
-    --focused-border-color: #808080;
+    --focused-border-color: #636363;
     --group-width: 280px;
     --icon-size: 20px;
-    --button-size: 24px;
     --large-gap: 16px;
     --transition-duration: .25s;
-    --revert-duration: .1s;
 }
 
 * {
     box-sizing: border-box;
+    scroll-behavior: smooth;
 }
 
 body {
@@ -34,15 +32,24 @@ body, button {
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    justify-content: space-between;
     gap: var(--large-gap);
     height: 100vh;
     padding: 16px;
 }
 
+#board-scroller {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
 #board {
     display: flex;
     align-items: flex-start;
-    flex-grow: 1;
     gap: var(--large-gap);
     min-height: 0;
 }
@@ -57,10 +64,10 @@ body, button {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    flex-shrink: 0;
     height: 48px;
     border-radius: 4px;
     border: 1px solid var(--border-color);
-    transition: border-color var(--revert-duration);
     animation: bin-grow .25s;
     transform-origin: center bottom;
 }
@@ -83,12 +90,11 @@ body, button {
     border: 1px solid white;
     border-radius: 4px;
     background-color: white;
-    transition: border-color var(--revert-duration);
 }
 
 .add-button:hover {
-    border: 1px solid var(--border-color);
-    transition: all .25s;
+    border: 1px solid var(--focused-border-color);
+    transition: all var(--transition-duration);
 }
 
 .add-button:focus {
@@ -98,8 +104,8 @@ body, button {
 }
 
 #add-group-button {
-    width: 120px;
-    height: var(--button-size);
+    min-width: var(--group-width);
+    align-self: stretch;
 }
 
 .label {
@@ -110,13 +116,13 @@ body, button {
 }
 
 .label[contenteditable="true"] {
-    outline: 1px solid var(--focused-border-color);
-    padding: 0 4px 0 4px;
+    outline: none;
+    padding: 0;
 }
 
 .drop-zone {
     border-color: var(--focused-border-color) !important;
-    transition: border-color .25s;
+    transition: border-color var(--transition-duration);
 }
 
 .group {
@@ -146,11 +152,11 @@ body, button {
     border-radius: 4px;
 }
 
-.card:hover {
+.group:hover, .group:focus-within, .card:hover, .card:focus-within {
     border-color: var(--focused-border-color);
-    transition: border-color .25s;
+    transition: border-color var(--transition-duration);
 }
 
 .add-card-button {
-    height: var(--button-size);
+    height: 32px;
 }
