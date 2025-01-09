@@ -16,7 +16,7 @@ function createLabel(initialText="") {
 
     // quit editing on keydown
     label.addEventListener("keydown", (e) => {
-        if (e.code !== "Escape" && e.code !== "Enter") return;
+        if (e.code !== "Enter") return;
 
         label.blur();
     })
@@ -357,6 +357,11 @@ function init() {
 
     // hide bin
     document.addEventListener("dragend", () => { bin.style.display = "none"; });
+
+    // blur on Escape press
+    document.addEventListener("keydown", e => {
+        if (e.code === "Escape") document.activeElement.blur();
+    })
 
     load();
 }
