@@ -83,7 +83,7 @@ function createGroup(label) {
 
 // move group within board
 function moveGroup(group, options={}) {
-    let { edit = false, scroll = true, saveAfter: save = true, before = null } = options;
+    let { edit = false, scroll = true, save = true, before = null } = options;
 
     let board = document.getElementById("board");
 
@@ -190,8 +190,6 @@ function handleDragleave(e) {
 function handleDragend(e) {
     let dropZones = document.querySelectorAll(".drop-zone");
 
-    // TODO: this doesn't run on drop
-
     for (const dz of dropZones) {
         dz.classList.remove("drop-zone");
     }
@@ -262,7 +260,7 @@ function moveItemToBin() {
     draggedElement.remove();
 
     // hide bin
-    this.style.display = "none";
+    // this.style.display = "none";
 
     save();
 }
@@ -316,7 +314,7 @@ function load() {
             for (const cardSave of groupSave.cards) {
                 // create card for group
                 let card = createCard(cardSave);
-                moveCard(card, group, { save: false, scroll: false});
+                moveCard(card, group, { save: false, scroll: false });
             }
 
             // reset group scroll
@@ -368,7 +366,7 @@ function init() {
     })
 
     // hide bin
-    document.addEventListener("dragend", () => { bin.style.display = "none"; console.log("end"); });
+    document.addEventListener("dragend", () => { bin.style.display = "none"; });
 
     // blur on Escape press
     document.addEventListener("keydown", e => {
