@@ -253,6 +253,9 @@ function dropGroup(mouseX) {
 function moveItemToBin() {
     draggedElement.remove();
 
+    // hide bin
+    this.style.display = "none";
+
     save();
 }
 
