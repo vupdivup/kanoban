@@ -14,6 +14,7 @@
 
 * {
     box-sizing: border-box;
+    scroll-behavior: smooth;
 }
 
 body {
@@ -44,7 +45,6 @@ body, button {
     overflow-x: scroll;
     overflow-y: hidden;
     scrollbar-width: none;
-
 }
 
 #board {

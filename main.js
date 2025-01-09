@@ -73,7 +73,7 @@ function createGroup(label) {
     // add card event handling
     addCardButton.addEventListener("click", () => {
         let card = createCard("");
-        moveCard(card, group, edit=true);
+        moveCard(card, group, { edit: true });
     });
 
     group.appendChild(addCardButton);
@@ -82,7 +82,9 @@ function createGroup(label) {
 }
 
 // move group within board
-function moveGroup(group, edit, saveAfter=true, before=null) {
+function moveGroup(group, options={}) {
+    let { edit = false, scroll = true, saveAfter: save = true, before = null } = options;
+
     let board = document.getElementById("board");
 
     // ensure to insert before add new button
@@ -98,7 +100,10 @@ function moveGroup(group, edit, saveAfter=true, before=null) {
         editLabel(label);
     }
 
-    if (saveAfter) save();
+    if (save) window.save();
+
+    // scroll to end of board
+    if (scroll) group.scrollIntoView({ block: "nearest" });
 }
 
 // create card with label
@@ -121,14 +126,15 @@ function createCard(text) {
 }
 
 // move card into group
-function moveCard(card, group, edit=false, saveAfter=true, before=null) {
+function moveCard(card, group, options={}) {
+    let { edit=false, scroll=true, save=true, before=null } = options;
+
     // insert into card list of group
     let scroller = group.querySelector(".card-scroller")
     scroller.insertBefore(card, before);
 
     // scroll to card
-    let y = card.offsetTop;
-    let scrollerHeight = scroller.offsetHeight;
+    if (scroll) card.scrollIntoView({ block: "nearest" });
 
     // make label editable
     if (edit) {
@@ -136,7 +142,7 @@ function moveCard(card, group, edit=false, saveAfter=true, before=null) {
         editLabel(label);
     }
 
-    if (saveAfter) save();
+    if (save) window.save();
 }
 
 // handle dragstart event of group and their children card elements
@@ -184,6 +190,8 @@ function handleDragleave(e) {
 function handleDragend(e) {
     let dropZones = document.querySelectorAll(".drop-zone");
 
+    // TODO: this doesn't run on drop
+
     for (const dz of dropZones) {
         dz.classList.remove("drop-zone");
     }
@@ -219,7 +227,7 @@ function dropCard(target, mouseY) {
         
         // place dragged card before this one if mouse is above middle point
         if (mouseY < y + height / 2) {
-            moveCard(draggedElement, group, false, true, card);
+            moveCard(draggedElement, group, { before: card });
             return;
         }
     }
@@ -240,13 +248,13 @@ function dropGroup(mouseX) {
 
         // place dragged before current group if mouse x is less than current's middle point 
         if (mouseX < x + width / 2) {
-            moveGroup(draggedElement, false, true, group);
+            moveGroup(draggedElement, { before: group });
             return;
         }
     }
 
     // insert as last if group was dragged way to the right
-    moveGroup(draggedElement, false);
+    moveGroup(draggedElement);
 }
 
 // remove item if dragged to trash bin
@@ -303,12 +311,12 @@ function load() {
         for (const groupSave of save.groups) {
             // create group
             let group = createGroup(groupSave.label);
-            moveGroup(group, false, false);
+            moveGroup(group, { scroll: false, save: false });
 
             for (const cardSave of groupSave.cards) {
                 // create card for group
                 let card = createCard(cardSave);
-                moveCard(card, group, false, false);
+                moveCard(card, group, { save: false, scroll: false});
             }
 
             // reset group scroll
@@ -322,9 +330,9 @@ function load() {
         let doing = createGroup("doing");
         let done = createGroup("done");
 
-        moveGroup(toDo, false, false);
-        moveGroup(doing, false, false);
-        moveGroup(done, false, false);
+        moveGroup(toDo, { save: false, scroll: false });
+        moveGroup(doing, { save: false, scroll: false });
+        moveGroup(done, { save: false, scroll: false });
     }
 }
 
@@ -334,7 +342,8 @@ function init() {
     let addGroupButton = document.getElementById("add-group-button")
     addGroupButton.addEventListener("click", () => {
         let group = createGroup("");
-        moveGroup(group, true);
+        moveGroup(group, { edit: true, scroll: false });
+        addGroupButton.scrollIntoView();
     });
 
     // board drag & drop events
@@ -359,7 +368,7 @@ function init() {
     })
 
     // hide bin
-    document.addEventListener("dragend", () => { bin.style.display = "none"; });
+    document.addEventListener("dragend", () => { bin.style.display = "none"; console.log("end"); });
 
     // blur on Escape press
     document.addEventListener("keydown", e => {
