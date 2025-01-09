@@ -193,6 +193,9 @@ function handleDragend(e) {
     for (const dz of dropZones) {
         dz.classList.remove("drop-zone");
     }
+
+    // hide bin
+    bin.style.display = "none";
 }
 
 // handle drop based on whether a card or a group is being moved
@@ -259,8 +262,9 @@ function dropGroup(mouseX) {
 function moveItemToBin() {
     draggedElement.remove();
 
-    // hide bin
-    // this.style.display = "none";
+    // manually dispatching dragend event
+    // it wouldn't fire normally since its target was removed
+    document.dispatchEvent(new Event("dragend"));
 
     save();
 }
@@ -361,12 +365,9 @@ function init() {
 
     // show bin when dragging
     // timeout is to ensure that drag starts before layout is updated
-    addEventListener("dragstart", () => {
+    document.addEventListener("dragstart", () => {
         setTimeout(() => { bin.style.display = "flex"}, 0);
     })
-
-    // hide bin
-    document.addEventListener("dragend", () => { bin.style.display = "none"; });
 
     // blur on Escape press
     document.addEventListener("keydown", e => {
