@@ -330,7 +330,7 @@ function init() {
     // add group event
     let addGroupButton = document.getElementById("add-group-button")
     addGroupButton.addEventListener("click", () => {
-        let group = createGroup("new group");
+        let group = createGroup("");
         moveGroup(group, true);
     });
 

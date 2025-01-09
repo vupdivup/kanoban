@@ -5,14 +5,11 @@
 
 :root {
     --border-color: #b8b8b8;
-    --hover-color: #dedede;
-    --focused-border-color: #808080;
+    --focused-border-color: #636363;
     --group-width: 280px;
     --icon-size: 20px;
-    --button-size: 24px;
     --large-gap: 16px;
     --transition-duration: .25s;
-    --revert-duration: .1s;
 }
 
 * {
@@ -92,12 +89,11 @@ body, button {
     border: 1px solid white;
     border-radius: 4px;
     background-color: white;
-    transition: border-color var(--revert-duration);
 }
 
 .add-button:hover {
-    border: 1px solid var(--border-color);
-    transition: all .25s;
+    border: 1px solid var(--focused-border-color);
+    transition: all var(--transition-duration);
 }
 
 .add-button:focus {
@@ -161,5 +157,5 @@ body, button {
 }
 
 .add-card-button {
-    height: var(--button-size);
+    height: 32px;
 }
