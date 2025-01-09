@@ -47,6 +47,9 @@ function createGroup(label) {
 
     group.addEventListener("dragstart", handleDragstart);
 
+    group.addEventListener("dragenter", handleDragenter);
+    group.addEventListener("dragleave", handleDragleave);
+
     // label
     let groupLabel = createLabel(label);
     group.appendChild(groupLabel);
@@ -111,6 +114,8 @@ function createCard(text) {
 
     // drag event handlers
     card.addEventListener("dragstart", handleDragstart);
+    card.addEventListener("dragenter", handleDragenter);
+    card.addEventListener("dragleave", handleDragleave);
 
     return card;
 }
@@ -162,12 +167,26 @@ function handleDragover(e) {
     e.dataTransfer.dropEffect = "move";
 }
 
-function focusDropZone(e) {
-    e.target.classList.add("drop-zone");
+// highlight drop zone
+function handleDragenter(e) {
+    e.currentTarget.classList.add("drop-zone");
 }
 
-function blurDropZone(e) {
-    e.target.classList.remove("drop-zone");
+// remove drop zone highlight if drag leaves element
+function handleDragleave(e) {
+    // if mouse is still within target, don't remove dropzone styling
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+
+    e.currentTarget.classList.remove("drop-zone");
+}
+
+// remove all drop zone highlights
+function handleDragend(e) {
+    let dropZones = document.querySelectorAll(".drop-zone");
+
+    for (const dz of dropZones) {
+        dz.classList.remove("drop-zone");
+    }
 }
 
 // handle drop based on whether a card or a group is being moved
@@ -231,9 +250,8 @@ function dropGroup(mouseX) {
 }
 
 // remove item if dragged to trash bin
-function handleBinDrop(e) {
+function moveItemToBin() {
     draggedElement.remove();
-    this.style.display = "none";
 
     save();
 }
@@ -324,18 +342,21 @@ function init() {
     // deletion drag & drop events
     let bin = document.getElementById("bin");
     bin.addEventListener("dragover", handleDragover);
-    bin.addEventListener("drop", handleBinDrop);
-    bin.addEventListener("dragenter", focusDropZone);
-    bin.addEventListener("dragleave", blurDropZone);
-    bin.addEventListener("drop", blurDropZone);
+    bin.addEventListener("drop", moveItemToBin);
+    bin.addEventListener("dragenter", handleDragenter);
+    bin.addEventListener("dragleave", handleDragleave);
 
+    // drag end - document-wide
+    document.addEventListener("dragend", handleDragend);
+
+    // show bin when dragging
+    // timeout is to ensure that drag starts before layout is updated
     addEventListener("dragstart", () => {
-        setTimeout(() => { document.getElementById("bin").style.display = "flex"}, 0);
+        setTimeout(() => { bin.style.display = "flex"}, 0);
     })
 
-    addEventListener("dragend", () => {
-        setTimeout(() => { document.getElementById("bin").style.display = "none";}, 0);
-    })
+    // hide bin
+    document.addEventListener("dragend", () => { bin.style.display = "none"; });
 
     load();
 }
