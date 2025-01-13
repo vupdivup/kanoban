@@ -9,6 +9,7 @@
     --group-width: 280px;
     --icon-size: 20px;
     --large-gap: 16px;
+    --add-button-min-height: 32px;
     --transition-duration: .25s;
 }
 
@@ -105,6 +106,7 @@ body, button {
 
 #add-group-button {
     min-width: var(--group-width);
+    min-height: var(--add-button-min-height);
     align-self: stretch;
 }
 
@@ -158,5 +160,5 @@ body, button {
 }
 
 .add-card-button {
-    height: 32px;
+    height: var(--add-button-min-height);
 }
